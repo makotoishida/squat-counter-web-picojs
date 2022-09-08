@@ -31,9 +31,15 @@ main>canvas {
 }
 
 .settings {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto;
     max-width: 640px;
-    gap: 1rem;
+    gap: 0.4rem;
     justify-content: center;
     border: 1px solid pink;
+}
+
+.settings input[type=number] {
+    width: 3rem;
+    text-align: right;
 }

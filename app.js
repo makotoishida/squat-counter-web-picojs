@@ -163,8 +163,21 @@ function app() {
     }
   }
 
+  function onClickUpDownButton(e) {
+    const value = parseInt(e.target.dataset.value, 10);
+    const parent = e.target.parentElement;
+    console.log(value, parent);
+    const input = parent.querySelector('input[type=number]');
+    input.value = parseInt(input.value, 10) + value;
+    onChangeUpDownY({ target: input });
+  }
+
   document.querySelectorAll('#up_y, #down_y').forEach((elem) => {
     elem.addEventListener('change', onChangeUpDownY);
+  });
+
+  document.querySelectorAll('.settings button[data-value]').forEach((elem) => {
+    elem.addEventListener('click', onClickUpDownButton);
   });
 
   document.querySelector('#btn_start').addEventListener('click', onClickStart);

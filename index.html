@@ -17,14 +17,14 @@
         <canvas id="camera" width="640" height="480"></canvas>
 
         <div class="settings">
-            <label for="up_y">Upper Bar <input type="number" name="up_y" id="up_y" value="200" step="5"
-                    style="width: 3rem; text-align: right;"></label>
-            <label for="down_y">Lower Bar <input type="number" name="down_y" id="down_y" value="320" step="5"
-                    style="width: 3rem; text-align: right;"></label>
-
-            <div>
-                <button type="button" id="btn_start">Start Camera</button> (If not started automatically)
-            </div>
+            <label for="up_y">Upper Bar <button type="button" data-value="-5">↑</button><input type="number" name="up_y"
+                    id="up_y" value="200" step="5"><button type="button" data-value="5">↓</button></label>
+            <label for="down_y">Lower Bar <button type="button" data-value="-5">↑</button><input type="number"
+                    name="down_y" id="down_y" value="320" step="5"><button type="button"
+                    data-value="5">↓</button></label>
+        </div>
+        <div>
+            <button type=" button" id="btn_start">Start Camera</button> (If not started automatically)
         </div>
         <section class="description">
             <p>All the processing is done on the client side, without sending any information to server.</p>
