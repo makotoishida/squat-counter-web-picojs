@@ -20,18 +20,20 @@ function camvas(ctx, callback, width, height) {
 
   // We can't `new Video()` yet, so we'll resort to the vintage
   // "hidden div" hack for dynamic loading.
-  var streamContainer = document.createElement("div");
-  this.video = document.createElement("video");
+  var streamContainer = document.createElement('div');
+  this.video = document.createElement('video');
 
   // If we don't do this, the stream will not be played.
   // By the way, the play and pause controls work as usual
   // for streamed videos.
-  this.video.setAttribute("autoplay", "1");
-  this.video.setAttribute("playsinline", "1"); // important for iPhones
+  this.video.setAttribute('autoplay', '1');
+  this.video.setAttribute('playsinline', '1'); // important for iPhones
 
   // The video should fill out all of the canvas
-  this.video.setAttribute("width", 1);
-  this.video.setAttribute("height", 1);
+  //   this.video.setAttribute("width", 1);
+  //   this.video.setAttribute("height", 1);
+  this.video.setAttribute('width', width);
+  this.video.setAttribute('height', height);
 
   streamContainer.appendChild(this.video);
   document.body.appendChild(streamContainer);
@@ -39,7 +41,7 @@ function camvas(ctx, callback, width, height) {
   // The callback happens when we are starting to stream the video.
   navigator.mediaDevices
     .getUserMedia({
-      video: { facingMode: "user", width, height },
+      video: { facingMode: 'user', width, height },
       audio: false,
     })
     .then(
