@@ -7,6 +7,10 @@ body {
     padding: 0;
 }
 
+button {
+    padding: 0.3rem 0.8rem;
+}
+
 body>main {
     display: grid;
     grid-template-columns: auto;
@@ -38,6 +42,8 @@ main>canvas {
 }
 
 .settings input[type=number] {
-    width: 3rem;
+    width: 4.2rem;
+    margin: 0 0.4rem;
+    padding: 0.3rem 0.6rem;
     text-align: right;
 }
