@@ -153,7 +153,7 @@ function app() {
     elem.addEventListener("change", onChangeUpDownY);
   });
 
-  //   document.querySelector("#btn_start").addEventListener("click", onClickStart);
+  document.querySelector("#btn_start").addEventListener("click", onClickStart);
   onClickStart();
 }
 
