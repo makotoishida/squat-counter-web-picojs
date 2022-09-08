@@ -15,17 +15,16 @@ body>main {
     display: grid;
     grid-template-columns: auto;
     width: 100vw;
-    max-width: 640px;
     margin: 0 auto;
     gap: 1rem;
     text-align: center;
 }
 
 main>canvas {
-    width: 100vw;
-    max-width: 640px;
+/*     max-width: 100vw; */
+/*     max-height: 133vw; */
+    margin: 0 auto;
     background-color: #ccc;
-    ;
 }
 
 .description {
@@ -51,3 +50,4 @@ main>canvas {
 video {
     display: none;
 }
+ 

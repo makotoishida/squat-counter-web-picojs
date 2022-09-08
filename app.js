@@ -1,12 +1,13 @@
-const scr_w = window.screen.availWidth;
-const scr_h = window.screen.availHeight;
+const scr_w = window.innerWidth;
+const scr_h = window.innerHeight;
 const is_horizontal = scr_w >= scr_h;
+console.log({ scr_w, scr_h, is_horizontal });
 
 function app() {
-  const base_w = is_horizontal ? 640 : 480;
-  const ratio = scr_w / base_w;
-  const WIDTH = (is_horizontal ? 640 : 480) * ratio;
-  const HEIGHT = (is_horizontal ? 480 : 640) * ratio;
+  // const base_w = is_horizontal ? 640 : 480;
+  // const ratio = scr_w / base_w;
+  let WIDTH = scr_w; //(is_horizontal ? 640 : 480) * ratio;
+  let HEIGHT = scr_h; //(is_horizontal ? 480 : 640) * ratio;
 
   const DETECT_PARAMS = {
     shiftfactor: 0.1, // Move the detection window by 10% of its size
@@ -23,10 +24,16 @@ function app() {
   let prev_down = false;
   let squat_done = false;
 
-  function setCanvasSize() {
+  function setCanvasSize(w, h) {
     const canvas = document.querySelector('#camera');
-    canvas.setAttribute('width', WIDTH);
-    canvas.setAttribute('height', HEIGHT);
+    if (w > 0) {
+      canvas.setAttribute('width', w);
+      canvas.style.width = w;
+    }
+    if (h > 0) {
+      canvas.setAttribute('height', h);
+      canvas.style.height = h;
+    }
   }
 
   function onClickStart() {
@@ -37,8 +44,8 @@ function app() {
     let facefinder_classify_region = (r, c, s, pixels, ldim) => -1.0;
 
     const cascadeurl = './facefinder.dat';
-    fetch(cascadeurl).then(function (response) {
-      response.arrayBuffer().then(function (buffer) {
+    fetch(cascadeurl).then(function(response) {
+      response.arrayBuffer().then(function(buffer) {
         let bytes = new Int8Array(buffer);
         facefinder_classify_region = pico.unpack_cascade(bytes);
         console.log('* facefinder loaded');
@@ -65,9 +72,10 @@ function app() {
     }
 
     // This function is called each time a video frame becomes available.
-    const processfn = function (video, dt) {
+    const processfn = function(video, dt) {
       // Render the video frame to the canvas.
-      ctx.drawImage(video, 0, 0);
+      // ctx.drawImage(video, (WIDTH - video.videoWidth) / 2, (HEIGHT - video.videoHeight) / 2, video.videoWidth, video.videoHeight);
+      ctx.drawImage(video, 0, 0, WIDTH, HEIGHT);
 
       // Extract RGBA pixel data.
       const rgba = ctx.getImageData(0, 0, WIDTH, HEIGHT).data;
@@ -87,12 +95,10 @@ function app() {
       dets = pico.cluster_detections(dets, 0.2); // Set IoU threshold to 0.2
 
       // Draw detections
-      let detected = false;
       for (i = 0; i < dets.length; ++i) {
         // Check the detection score. If it's above the threshold, draw it.
         // (The constant 50.0 is empirical: other cascades might require a different one)
         if (dets[i][3] > 50.0) {
-          detected = true;
           const x = dets[i][1];
           const y = dets[i][0];
           ctx.beginPath();
@@ -108,8 +114,15 @@ function app() {
       drawStatus(ctx);
     };
 
+    function notifyCameraRes(w, h) {
+      // console.log('notifyCameraRes', { w, h });
+      if (w > 0) WIDTH = w;
+      if (h > 0) HEIGHT = h;
+      setCanvasSize(w, h);
+    }
+
     // Instantiate camera handling (see https://github.com/cbrandolino/camvas)
-    new camvas(ctx, processfn, WIDTH, HEIGHT);
+    new camvas(ctx, processfn, notifyCameraRes);
     initialized = true;
   }
 
@@ -165,7 +178,6 @@ function app() {
   function onClickUpDownButton(e) {
     const value = parseInt(e.target.dataset.value, 10);
     const parent = e.target.parentElement;
-    console.log(value, parent);
     const input = parent.querySelector('input[type=number]');
     input.value = parseInt(input.value, 10) + value;
     onChangeUpDownY({ target: input });
@@ -183,7 +195,7 @@ function app() {
 
   document.addEventListener('dblclick', () => false);
 
-  setCanvasSize();
+  setCanvasSize(WIDTH, HEIGHT);
   onClickStart();
 }
 
