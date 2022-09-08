@@ -3,3 +3,4 @@
     [headers.values]
     Access-Control-Allow-Origin = "*"
     Content-Security-Policy = "default-src 'self' data: *; img-src 'self' data: *; media-src * 'self' *"
+    Strict-Transport-Security = "max-age=7755311; includeSubDomains"
