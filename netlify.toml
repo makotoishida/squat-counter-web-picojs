@@ -5,3 +5,4 @@
     Content-Security-Policy = "default-src 'self' data: *; img-src 'self' data: *; media-src * 'self' *"
     Strict-Transport-Security = "max-age=7755311; includeSubDomains"
     Feature-Policy = "camera 'self'"
+    Permissions-Policy = "camera=(self); fullscreen=(self);"
