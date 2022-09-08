@@ -181,6 +181,9 @@ function app() {
   });
 
   document.querySelector('#btn_start').addEventListener('click', onClickStart);
+
+  document.addEventListener('dblclick', () => false);
+
   onClickStart();
 }
 
