@@ -11,3 +11,13 @@
 - When the circle changes its color to blue, slowly go up to the blue horizontal line.
 - Great! That's one count of a squat.
 - Now repeat the process and start excercising!
+
+## DEMO SITE
+
+You can try the app at the following address:
+
+https://squat-counter-web-picojs.makotoishida.repl.co
+
+## Note
+
+- Currently Safari browser is not supported. Please use Chrome or FireFox instead.
