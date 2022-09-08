@@ -1,6 +1,12 @@
+const scr_w = window.screen.availWidth;
+const scr_h = window.screen.availHeight;
+const is_horizontal = scr_w >= scr_h;
+console.log({ scr_w, scr_h, is_horizontal });
+
 function app() {
-  const WIDTH = 640;
-  const HEIGHT = 480;
+  const WIDTH = is_horizontal ? 640 : 480;
+  const HEIGHT = is_horizontal ? 480 : 640;
+  console.log({ WIDTH, HEIGHT });
   const DETECT_PARAMS = {
     shiftfactor: 0.1, // Move the detection window by 10% of its size
     minsize: 100, // Minimum size of a face
@@ -16,27 +22,35 @@ function app() {
   let prev_down = false;
   let squat_done = false;
 
+  function setCanvasSize() {
+    const canvas = document.querySelector('#camera');
+    canvas.setAttribute('width', WIDTH);
+    canvas.setAttribute('height', HEIGHT);
+  }
+
   function onClickStart() {
     if (initialized) return;
+
+    setCanvasSize();
 
     // Initialize the pico.js face detector
     const update_memory = pico.instantiate_detection_memory(10);
     let facefinder_classify_region = (r, c, s, pixels, ldim) => -1.0;
 
-    const cascadeurl = "./facefinder.dat";
+    const cascadeurl = './facefinder.dat';
     fetch(cascadeurl).then(function (response) {
       response.arrayBuffer().then(function (buffer) {
         let bytes = new Int8Array(buffer);
         facefinder_classify_region = pico.unpack_cascade(bytes);
-        console.log("* facefinder loaded");
+        console.log('* facefinder loaded');
       });
     });
 
     // Get the drawing context on the canvas and define a function to transform an RGBA image to grayscale.
-    const ctx = document.getElementsByTagName("canvas")[0].getContext("2d");
+    const ctx = document.getElementsByTagName('canvas')[0].getContext('2d');
     ctx.lineWidth = 3;
-    ctx.font = "42px sans-serif";
-    ctx.textAlign = "center";
+    ctx.font = '42px sans-serif';
+    ctx.textAlign = 'center';
 
     function rgba_to_grayscale(rgba, nrows, ncols) {
       var gray = new Uint8Array(nrows * ncols);
@@ -84,7 +98,7 @@ function app() {
           const y = dets[i][0];
           ctx.beginPath();
           ctx.arc(x, y, dets[i][2] / 2, 0, 2 * Math.PI, false);
-          ctx.strokeStyle = squat_done ? "blue" : "red";
+          ctx.strokeStyle = squat_done ? 'blue' : 'red';
           ctx.stroke();
 
           //   console.log(`(${x}, ${y})`);
@@ -96,7 +110,7 @@ function app() {
     };
 
     // Instantiate camera handling (see https://github.com/cbrandolino/camvas)
-    var mycamvas = new camvas(ctx, processfn);
+    new camvas(ctx, processfn, WIDTH, HEIGHT);
     initialized = true;
   }
 
@@ -109,20 +123,20 @@ function app() {
   }
 
   function drawStatus(ctx) {
-    drawLine(ctx, 0, up_y, WIDTH, up_y, "aqua");
-    drawLine(ctx, 0, down_y, WIDTH, down_y, "pink");
+    drawLine(ctx, 0, up_y, WIDTH, up_y, 'aqua');
+    drawLine(ctx, 0, down_y, WIDTH, down_y, 'pink');
 
     if (squat_done) {
-      drawLine(ctx, 0, up_y, WIDTH, up_y, "blue");
+      drawLine(ctx, 0, up_y, WIDTH, up_y, 'blue');
     } else {
-      drawLine(ctx, 0, down_y, WIDTH, down_y, "red");
+      drawLine(ctx, 0, down_y, WIDTH, down_y, 'red');
     }
 
-    ctx.fillStyle = squat_done ? "red" : "blue";
+    ctx.fillStyle = squat_done ? 'red' : 'blue';
     ctx.fillText(count, WIDTH / 2, 50);
 
-    const msg = `${squat_done ? "" : "Ready"}`;
-    ctx.fillStyle = "blue";
+    const msg = `${squat_done ? '' : 'Ready'}`;
+    ctx.fillStyle = 'blue';
     ctx.fillText(msg, WIDTH / 2, 90);
   }
 
@@ -141,19 +155,19 @@ function app() {
 
   function onChangeUpDownY(e) {
     const id = e.target.id;
-    if (id === "up_y") {
+    if (id === 'up_y') {
       up_y = parseInt(e.target.value, 10);
     }
-    if (id === "down_y") {
+    if (id === 'down_y') {
       down_y = parseInt(e.target.value, 10);
     }
   }
 
-  document.querySelectorAll("#up_y, #down_y").forEach((elem) => {
-    elem.addEventListener("change", onChangeUpDownY);
+  document.querySelectorAll('#up_y, #down_y').forEach((elem) => {
+    elem.addEventListener('change', onChangeUpDownY);
   });
 
-  document.querySelector("#btn_start").addEventListener("click", onClickStart);
+  document.querySelector('#btn_start').addEventListener('click', onClickStart);
   onClickStart();
 }
 
