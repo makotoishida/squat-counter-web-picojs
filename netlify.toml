@@ -2,7 +2,7 @@
   for = "/*"
     [headers.values]
     Access-Control-Allow-Origin = "*"
-    Content-Security-Policy = "default-src 'self' 'unsafe-inline'; style-src 'self'; script-src 'self'; connect-src 'self'; base-uri 'self'; img-src '*' data:; media-src '*' data:"
+    Content-Security-Policy = "default-src 'self' 'unsafe-inline'; font-src *; style-src 'self'; script-src 'self'; connect-src 'self'; base-uri 'self'; img-src * data:; media-src * data:"
     Strict-Transport-Security = "max-age=7755311; includeSubDomains"
     Feature-Policy = "microphone '*'; camera '*'; fullscreen '*'; autoplay '*'"
     Permissions-Policy = "microphone=(*); camera=(*); fullscreen=(*) autoplay=(*);"
