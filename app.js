@@ -3,8 +3,11 @@ const scr_h = window.screen.availHeight;
 const is_horizontal = scr_w >= scr_h;
 
 function app() {
-  const WIDTH = is_horizontal ? 640 : 480;
-  const HEIGHT = is_horizontal ? 480 : 640;
+  const base_w = is_horizontal ? 640 : 480;
+  const ratio = scr_w / base_w;
+  const WIDTH = (is_horizontal ? 640 : 480) * ratio;
+  const HEIGHT = (is_horizontal ? 480 : 640) * ratio;
+
   const DETECT_PARAMS = {
     shiftfactor: 0.1, // Move the detection window by 10% of its size
     minsize: 100, // Minimum size of a face
