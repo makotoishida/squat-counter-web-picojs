@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Using pico.js and lploc.js for real-time localization of eye pupils</title>
+    <script src="camvas.js"></script>
+    <script src="pico.js"></script>
+    <script src="lploc.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+</head>
+
+<body style="display:flex; gap:1rem; text-align: center;">
+    <section style="padding: 1rem;">
+        <h3>Using pico.js for real-time detection of faces</h3>
+        <p>Click the button below and allow the page to access your webcam.</p>
+        <p><b>All the processing is done on the client side, without sending any information to a server.</b></p>
+        <p>More information about the algotihm is available <a href=" https://github.com/nenadmarkus/picojs"
+                target="_blank">here</a>.
+        </p>
+        <!-- <p>
+            <input type="button" id="btn_start" value="Start WebCam">
+        </p> -->
+        <div style="display:flex; gap: 1rem; justify-content: center;">
+            <label for="up_y">Upper Bar <input type="number" name="up_y" id="up_y" value="200" step="5"
+                    style="width: 3rem; text-align: right;"></label>
+            <label for="down_y">Lower Bar <input type="number" name="down_y" id="down_y" value="320" step="5"
+                    style="width: 3rem; text-align: right;"></label>
+        </div>
+    </section>
+    <canvas width=" 640" height="480"></canvas>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
