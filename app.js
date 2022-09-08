@@ -1,12 +1,10 @@
 const scr_w = window.screen.availWidth;
 const scr_h = window.screen.availHeight;
 const is_horizontal = scr_w >= scr_h;
-console.log({ scr_w, scr_h, is_horizontal });
 
 function app() {
   const WIDTH = is_horizontal ? 640 : 480;
   const HEIGHT = is_horizontal ? 480 : 640;
-  console.log({ WIDTH, HEIGHT });
   const DETECT_PARAMS = {
     shiftfactor: 0.1, // Move the detection window by 10% of its size
     minsize: 100, // Minimum size of a face
@@ -30,8 +28,6 @@ function app() {
 
   function onClickStart() {
     if (initialized) return;
-
-    setCanvasSize();
 
     // Initialize the pico.js face detector
     const update_memory = pico.instantiate_detection_memory(10);
@@ -135,7 +131,7 @@ function app() {
     ctx.fillStyle = squat_done ? 'red' : 'blue';
     ctx.fillText(count, WIDTH / 2, 50);
 
-    const msg = `${squat_done ? '' : 'Ready'}`;
+    const msg = squat_done ? '' : 'Ready';
     ctx.fillStyle = 'blue';
     ctx.fillText(msg, WIDTH / 2, 90);
   }
@@ -184,6 +180,7 @@ function app() {
 
   document.addEventListener('dblclick', () => false);
 
+  setCanvasSize();
   onClickStart();
 }
 
