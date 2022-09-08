@@ -2,7 +2,7 @@
   for = "/*"
     [headers.values]
     Access-Control-Allow-Origin = "*"
-    Content-Security-Policy = "default-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data:; media-src 'self' data:"
+    Content-Security-Policy = "default-src 'self' 'unsafe-inline' 'unsafe-eval' data:; img-src 'self' data:; media-src 'self' data:"
     Strict-Transport-Security = "max-age=7755311; includeSubDomains"
-    Feature-Policy = "microphone 'self';camera 'self';geolocation none;midi none;notifications none;push none;sync-xhr none;magnetometer none;gyroscope none;speaker none;vibrate none;fullscreen self;payment none;"
+    Feature-Policy = "microphone '*';camera '*';fullscreen '*';geolocation none;midi none;notifications none;push none;sync-xhr none;magnetometer none;gyroscope none;speaker none;vibrate none;payment none;"
     Permissions-Policy = "camera=(self); fullscreen=(self);"
