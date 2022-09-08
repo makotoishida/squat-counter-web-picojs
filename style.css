@@ -15,14 +15,25 @@ body>main {
     margin: 0 auto;
     gap: 1rem;
     text-align: center;
+    border: 1px solid pink;
 }
 
 main>canvas {
     width: 100vw;
     max-width: 640px;
+    border: 1px solid pink;
 }
 
 .description {
     max-width: 640px;
-    padding: 1rem;
+    padding: 0.4rem;
+    border: 1px solid pink;
+}
+
+.settings {
+    display: flex;
+    max-width: 640px;
+    gap: 1rem;
+    justify-content: center;
+    border: 1px solid pink;
 }

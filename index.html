@@ -14,22 +14,20 @@
 
 <body>
     <main>
-        <canvas width=" 640" height="480"></canvas>
+        <canvas width="640" height="480"></canvas>
 
-        <section class="description">
-            <div style="display:flex; gap: 1rem; justify-content: center;">
-                <label for="up_y">Upper Bar <input type="number" name="up_y" id="up_y" value="200" step="5"
-                        style="width: 3rem; text-align: right;"></label>
-                <label for="down_y">Lower Bar <input type="number" name="down_y" id="down_y" value="320" step="5"
-                        style="width: 3rem; text-align: right;"></label>
+        <div class="settings">
+            <label for="up_y">Upper Bar <input type="number" name="up_y" id="up_y" value="200" step="5"
+                    style="width: 3rem; text-align: right;"></label>
+            <label for="down_y">Lower Bar <input type="number" name="down_y" id="down_y" value="320" step="5"
+                    style="width: 3rem; text-align: right;"></label>
+
+            <div>
+                <button type="button" id="btn_start">Start Camera</button> (If not started automatically)
             </div>
-
-            <p>
-                <input type="button" id="btn_start" value="Start WebCam">
-                (If not started automatically)
-            </p>
-
-            <h3>All the processing is done on the client side, without sending any information to server.</h3>
+        </div>
+        <section class="description">
+            <p>All the processing is done on the client side, without sending any information to server.</p>
             <p>Thanks to <a href=" https://github.com/nenadmarkus/picojs" target="_blank">pico.js</a>!
             </p>
         </section>
