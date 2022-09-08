@@ -5,7 +5,7 @@
     Content-Security-Policy = "default-src 'self' 'unsafe-inline'; font-src * data:; style-src 'self'; script-src 'self'; connect-src 'self'; base-uri 'self'; img-src * data:; media-src * data:"
     Strict-Transport-Security = "max-age=7755311; includeSubDomains"
     Feature-Policy = "microphone *; camera *; fullscreen *; autoplay *"
-    Permissions-Policy = "microphone=*, camera=*, fullscreen=*, autoplay=*;"
+    Permissions-Policy = "microphone=*, camera=*, fullscreen=*, autoplay=*"
     X-Frame-Options = "SAMEORIGIN"
     X-Content-Type-Options = "nosniff"
 
