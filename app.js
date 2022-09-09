@@ -6,23 +6,37 @@
     scalefactor: 1.1, // For multiscale processing: resize the detection window by 10% when moving to the higher scale
   };
 
-  let SCR_W, SCR_H, is_horizontal, vw, vh, initialized;
+  const MAX_VIEW_W = 540;
+  const DEF_VIEW_W = 480;
+  const DEF_VIEW_H = 640;
+  let scrW, scrH, viewW, viewH;
   let count, prev_up, prev_down, squat_done, up_y, down_y;
+  let isHorizontal = undefined;
+  let initialized = false;
 
   function onResizeWindow() {
-    SCR_W = window.innerWidth;
-    SCR_H = window.innerHeight;
-    is_horizontal = SCR_W > SCR_H;
-    console.log('onResizeWindow', {
-      scr_w: SCR_W,
-      scr_h: SCR_H,
-      is_horizontal,
-    });
+    scrW = window.innerWidth;
+    scrH = window.innerHeight;
 
-    const ratio = is_horizontal ? 240 / 320 : 320 / 240;
-    vw = SCR_W;
-    vh = SCR_W * ratio;
-    initialized = false;
+    // Reload entire window when screen direction changes.
+    if (isHorizontal !== scrW > scrH && isHorizontal !== undefined) {
+      window.location.reload();
+      return;
+    }
+
+    // Ignore if already camera is started and just resizing window.
+    if (initialized) {
+      return;
+    }
+
+    isHorizontal = scrW > scrH;
+    console.log('onResizeWindow', { scrW, scrH, is_horizontal: isHorizontal });
+
+    const ratio = isHorizontal
+      ? DEF_VIEW_W / DEF_VIEW_H
+      : DEF_VIEW_H / DEF_VIEW_W;
+    viewW = Math.min(scrW, MAX_VIEW_W);
+    viewH = viewW * ratio;
     count = 0;
     prev_up = false;
     prev_down = false;
@@ -34,22 +48,18 @@
   }
 
   function setCanvasSize() {
-    if (vw <= 0 || vh <= 0) return;
+    if (viewW <= 0 || viewH <= 0) return;
 
     const canvas = document.querySelector('#camera');
-    const ratio = is_horizontal ? SCR_H / vh : SCR_W / vw;
-    const w = vw * ratio;
-    const h = vh * ratio;
-
-    canvas.setAttribute('width', w);
-    canvas.style.width = w;
-    canvas.setAttribute('height', h);
-    canvas.style.height = h;
+    canvas.setAttribute('width', viewW);
+    canvas.style.width = viewW;
+    canvas.setAttribute('height', viewH);
+    canvas.style.height = viewH;
   }
 
   function setDefaultBarPosition() {
-    up_y = (vh * 0.36) | 0;
-    down_y = (vh * 0.64) | 0;
+    up_y = (viewH * 0.36) | 0;
+    down_y = (viewH * 0.64) | 0;
   }
 
   function startCamera() {
@@ -73,9 +83,8 @@
 
     const ctx = canvas.getContext('2d');
     ctx.lineWidth = 3;
-    ctx.font = '42px sans-serif';
+    ctx.font = '12vmin sans-serif';
     ctx.textAlign = 'center';
-    // ctx.scale(-1, 1);
 
     function rgba_to_grayscale(rgba, nrows, ncols) {
       var gray = new Uint8Array(nrows * ncols);
@@ -90,24 +99,23 @@
       return gray;
     }
 
-    // This function is called each time a video frame becomes available.
-    const processfn = function (video, dt) {
+    function onDraw(video, dt) {
       // Render the video frame to the canvas.
       ctx.save();
-      ctx.translate(vw, 0); // Flip horizontally
+      ctx.translate(viewW, 0); // Flip horizontally
       ctx.scale(-1, 1); // Flip horizontally
-      ctx.drawImage(video, 0, 0, vw, vh);
+      ctx.drawImage(video, 0, 0, viewW, viewH);
       ctx.restore();
 
       // Extract RGBA pixel data.
-      const rgba = ctx.getImageData(0, 0, vw, vh).data;
+      const rgba = ctx.getImageData(0, 0, viewW, viewH).data;
 
       // Prepare input data to `run_cascade`
       image = {
-        pixels: rgba_to_grayscale(rgba, vh, vw),
-        nrows: vh,
-        ncols: vw,
-        ldim: vw,
+        pixels: rgba_to_grayscale(rgba, viewH, viewW),
+        nrows: viewH,
+        ncols: viewW,
+        ldim: viewW,
       };
 
       // Run the cascade over the frame and cluster the obtained detections.
@@ -119,8 +127,7 @@
 
       // Draw detections
       for (i = 0; i < dets.length; ++i) {
-        // Check the detection score. If it's above the threshold, draw it.
-        // (The constant 50.0 is empirical: other cascades might require a different one)
+        // Check the detection score. Draw a circle if it's above the threshold.
         if (dets[i][3] > 50.0) {
           const x = dets[i][1];
           const y = dets[i][0];
@@ -129,23 +136,25 @@
           ctx.strokeStyle = squat_done ? 'blue' : 'red';
           ctx.stroke();
 
-          //   console.log(`(${x}, ${y})`);
           updateStatus(y <= up_y, y >= down_y);
         }
       }
 
       drawStatus(ctx, video);
-    };
+    }
 
-    // Instantiate camera handling (see https://github.com/cbrandolino/camvas)
-    new camvas(ctx, processfn);
+    // Start camera handling (see https://github.com/cbrandolino/camvas)
+    new camvas(ctx, onDraw);
     initialized = true;
   }
 
-  function drawLine(ctx, x0, y0, x1, y1, style) {
+  function drawLine(ctx, x0, y0, x1, y1, style, dashed = false) {
     ctx.save();
     ctx.beginPath();
     ctx.strokeStyle = style;
+    if (dashed) {
+      ctx.setLineDash([5, 5]);
+    }
     ctx.moveTo(x0, y0);
     ctx.lineTo(x1, y1);
     ctx.stroke();
@@ -155,44 +164,49 @@
   function drawStatus(ctx, video) {
     ctx.save();
 
-    drawLine(ctx, 0, up_y, vw, up_y, 'aqua');
-    drawLine(ctx, 0, down_y, vw, down_y, 'pink');
+    drawLine(ctx, 0, up_y, viewW, up_y, 'aqua', true);
+    drawLine(ctx, 0, down_y, viewW, down_y, 'pink', true);
 
     if (squat_done) {
-      drawLine(ctx, 0, up_y, vw, up_y, 'blue');
+      drawLine(ctx, 0, up_y, viewW, up_y, 'blue', true);
     } else {
-      drawLine(ctx, 0, down_y, vw, down_y, 'red');
+      drawLine(ctx, 0, down_y, viewW, down_y, 'red', true);
     }
 
-    ctx.font = '12vw sans-serif';
+    ctx.font = '12vmin sans-serif';
     ctx.fillStyle = squat_done ? 'red' : 'blue';
-    ctx.fillText(count, vw / 2, vh * 0.1);
+    ctx.fillText(count, viewW / 2, viewH * 0.14);
 
     const msg = squat_done ? '' : 'Ready';
-    ctx.font = '8vw sans-serif';
+    ctx.font = '7vmin sans-serif';
     ctx.fillStyle = 'blue';
-    ctx.fillText(msg, vw / 2, vh * 0.18);
+    ctx.fillText(msg, viewW / 2, viewH * 0.23);
 
-    // ctx.font = '4vw sans-serif';
-    // ctx.fillStyle = 'yellow';
-    // ctx.fillText(
-    //   `view=(${vw | 0},${vh | 0}), bars=(${up_y}-${down_y})`,
-    //   (vw / 2) | 0,
-    //   (vh - 56) | 0
-    // );
-    // ctx.fillText(
-    //   `video=(${video.videoWidth},${video.videoHeight})`,
-    //   (vw / 2) | 0,
-    //   (vh - 38) | 0
-    // );
-
-    // ctx.fillText(
-    //   `canvas=(${ctx.canvas.width},${ctx.canvas.height}), SCR=(${SCR_W}, ${SCR_H})`,
-    //   (vw / 2) | 0,
-    //   (vh - 20) | 0
-    // );
+    // //------ For Debugging
+    // drawDebug(ctx, video);
 
     ctx.restore();
+  }
+
+  function drawDebug(ctx, video) {
+    ctx.font = '2.8vmin sans-serif';
+    ctx.fillStyle = 'yellow';
+    ctx.fillText(
+      `view=(${viewW | 0},${viewH | 0}), bars=(${up_y}-${down_y})`,
+      (viewW / 2) | 0,
+      (viewH * 0.86) | 0
+    );
+    ctx.fillText(
+      `video=(${video.videoWidth},${video.videoHeight})`,
+      (viewW / 2) | 0,
+      (viewH * 0.91) | 0
+    );
+
+    ctx.fillText(
+      `canvas=(${ctx.canvas.width},${ctx.canvas.height}), SCR=(${scrW}, ${scrH})`,
+      (viewW / 2) | 0,
+      (viewH * 0.96) | 0
+    );
   }
 
   function updateStatus(up, down) {
@@ -215,8 +229,8 @@
     if (target === 'down_y') down_y += value;
   }
 
-  document.querySelectorAll('.settings button[data-value]').forEach((elem) => {
-    elem.addEventListener('click', onClickUpDownButton);
+  document.querySelectorAll('.settings button[data-value]').forEach((el) => {
+    el.addEventListener('click', onClickUpDownButton);
   });
 
   document.addEventListener('dblclick', () => false);
@@ -224,7 +238,7 @@
   let timer = undefined;
   window.addEventListener('resize', () => {
     if (timer) clearTimeout(timer);
-    timer = setTimeout(onResizeWindow, 200);
+    timer = setTimeout(onResizeWindow, 100);
   });
 
   onResizeWindow();
