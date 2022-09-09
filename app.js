@@ -1,14 +1,4 @@
-const scr_w = window.innerWidth;
-const scr_h = window.innerHeight;
-const is_horizontal = scr_w >= scr_h;
-console.log({ scr_w, scr_h, is_horizontal });
-
-function app() {
-  // const base_w = is_horizontal ? 640 : 480;
-  // const ratio = scr_w / base_w;
-  let WIDTH = scr_w; //(is_horizontal ? 640 : 480) * ratio;
-  let HEIGHT = scr_h; //(is_horizontal ? 480 : 640) * ratio;
-
+(function () {
   const DETECT_PARAMS = {
     shiftfactor: 0.1, // Move the detection window by 10% of its size
     minsize: 100, // Minimum size of a face
@@ -16,27 +6,53 @@ function app() {
     scalefactor: 1.1, // For multiscale processing: resize the detection window by 10% when moving to the higher scale
   };
 
-  let initialized = false;
-  let up_y = 200;
-  let down_y = 320;
-  let count = 0;
-  let prev_up = false;
-  let prev_down = false;
-  let squat_done = false;
+  let SCR_W, SCR_H, is_horizontal, vw, vh, initialized;
+  let count, prev_up, prev_down, squat_done, up_y, down_y;
 
-  function setCanvasSize(w, h) {
-    const canvas = document.querySelector('#camera');
-    if (w > 0) {
-      canvas.setAttribute('width', w);
-      canvas.style.width = w;
-    }
-    if (h > 0) {
-      canvas.setAttribute('height', h);
-      canvas.style.height = h;
-    }
+  function onResizeWindow() {
+    SCR_W = window.innerWidth;
+    SCR_H = window.innerHeight;
+    is_horizontal = SCR_W > SCR_H;
+    console.log('onResizeWindow', {
+      scr_w: SCR_W,
+      scr_h: SCR_H,
+      is_horizontal,
+    });
+
+    const ratio = is_horizontal ? 240 / 320 : 320 / 240;
+    vw = SCR_W;
+    vh = SCR_W * ratio;
+    initialized = false;
+    count = 0;
+    prev_up = false;
+    prev_down = false;
+    squat_done = false;
+
+    setDefaultBarPosition();
+    setCanvasSize();
+    startCamera();
   }
 
-  function onClickStart() {
+  function setCanvasSize() {
+    if (vw <= 0 || vh <= 0) return;
+
+    const canvas = document.querySelector('#camera');
+    const ratio = is_horizontal ? SCR_H / vh : SCR_W / vw;
+    const w = vw * ratio;
+    const h = vh * ratio;
+
+    canvas.setAttribute('width', w);
+    canvas.style.width = w;
+    canvas.setAttribute('height', h);
+    canvas.style.height = h;
+  }
+
+  function setDefaultBarPosition() {
+    up_y = (vh * 0.36) | 0;
+    down_y = (vh * 0.64) | 0;
+  }
+
+  function startCamera() {
     if (initialized) return;
 
     // Initialize the pico.js face detector
@@ -44,8 +60,8 @@ function app() {
     let facefinder_classify_region = (r, c, s, pixels, ldim) => -1.0;
 
     const cascadeurl = './facefinder.dat';
-    fetch(cascadeurl).then(function(response) {
-      response.arrayBuffer().then(function(buffer) {
+    fetch(cascadeurl).then(function (response) {
+      response.arrayBuffer().then(function (buffer) {
         let bytes = new Int8Array(buffer);
         facefinder_classify_region = pico.unpack_cascade(bytes);
         console.log('* facefinder loaded');
@@ -53,10 +69,13 @@ function app() {
     });
 
     // Get the drawing context on the canvas and define a function to transform an RGBA image to grayscale.
-    const ctx = document.getElementsByTagName('canvas')[0].getContext('2d');
+    const canvas = document.querySelector('#camera');
+
+    const ctx = canvas.getContext('2d');
     ctx.lineWidth = 3;
     ctx.font = '42px sans-serif';
     ctx.textAlign = 'center';
+    // ctx.scale(-1, 1);
 
     function rgba_to_grayscale(rgba, nrows, ncols) {
       var gray = new Uint8Array(nrows * ncols);
@@ -72,24 +91,28 @@ function app() {
     }
 
     // This function is called each time a video frame becomes available.
-    const processfn = function(video, dt) {
+    const processfn = function (video, dt) {
       // Render the video frame to the canvas.
-      // ctx.drawImage(video, (WIDTH - video.videoWidth) / 2, (HEIGHT - video.videoHeight) / 2, video.videoWidth, video.videoHeight);
-      ctx.drawImage(video, 0, 0, WIDTH, HEIGHT);
+      ctx.save();
+      ctx.translate(vw, 0); // Flip horizontally
+      ctx.scale(-1, 1); // Flip horizontally
+      ctx.drawImage(video, 0, 0, vw, vh);
+      ctx.restore();
 
       // Extract RGBA pixel data.
-      const rgba = ctx.getImageData(0, 0, WIDTH, HEIGHT).data;
-      // Prepare input to `run_cascade`
+      const rgba = ctx.getImageData(0, 0, vw, vh).data;
+
+      // Prepare input data to `run_cascade`
       image = {
-        pixels: rgba_to_grayscale(rgba, HEIGHT, WIDTH),
-        nrows: HEIGHT,
-        ncols: WIDTH,
-        ldim: WIDTH,
+        pixels: rgba_to_grayscale(rgba, vh, vw),
+        nrows: vh,
+        ncols: vw,
+        ldim: vw,
       };
 
-      // Run the cascade over the frame and cluster the obtained detections
-      // dets is an array that contains (r, c, s, q) quadruplets
-      // (representing row, column, scale and detection score)
+      // Run the cascade over the frame and cluster the obtained detections.
+      //    dets is an array that contains (r, c, s, q) quadruplets
+      //    (representing row, column, scale and detection score)
       dets = pico.run_cascade(image, facefinder_classify_region, DETECT_PARAMS);
       dets = update_memory(dets);
       dets = pico.cluster_detections(dets, 0.2); // Set IoU threshold to 0.2
@@ -111,45 +134,65 @@ function app() {
         }
       }
 
-      drawStatus(ctx);
+      drawStatus(ctx, video);
     };
 
-    function notifyCameraRes(w, h) {
-      // console.log('notifyCameraRes', { w, h });
-      if (w > 0) WIDTH = w;
-      if (h > 0) HEIGHT = h;
-      setCanvasSize(w, h);
-    }
-
     // Instantiate camera handling (see https://github.com/cbrandolino/camvas)
-    new camvas(ctx, processfn, notifyCameraRes);
+    new camvas(ctx, processfn);
     initialized = true;
   }
 
   function drawLine(ctx, x0, y0, x1, y1, style) {
+    ctx.save();
     ctx.beginPath();
     ctx.strokeStyle = style;
     ctx.moveTo(x0, y0);
     ctx.lineTo(x1, y1);
     ctx.stroke();
+    ctx.restore();
   }
 
-  function drawStatus(ctx) {
-    drawLine(ctx, 0, up_y, WIDTH, up_y, 'aqua');
-    drawLine(ctx, 0, down_y, WIDTH, down_y, 'pink');
+  function drawStatus(ctx, video) {
+    ctx.save();
+
+    drawLine(ctx, 0, up_y, vw, up_y, 'aqua');
+    drawLine(ctx, 0, down_y, vw, down_y, 'pink');
 
     if (squat_done) {
-      drawLine(ctx, 0, up_y, WIDTH, up_y, 'blue');
+      drawLine(ctx, 0, up_y, vw, up_y, 'blue');
     } else {
-      drawLine(ctx, 0, down_y, WIDTH, down_y, 'red');
+      drawLine(ctx, 0, down_y, vw, down_y, 'red');
     }
 
+    ctx.font = '44px sans-serif';
     ctx.fillStyle = squat_done ? 'red' : 'blue';
-    ctx.fillText(count, WIDTH / 2, 50);
+    ctx.fillText(count, vw / 2, 50);
 
     const msg = squat_done ? '' : 'Ready';
+    ctx.font = '38px sans-serif';
     ctx.fillStyle = 'blue';
-    ctx.fillText(msg, WIDTH / 2, 90);
+    ctx.fillText(msg, vw / 2, 90);
+
+    // ctx.font = '16px sans-serif';
+    // ctx.fillStyle = 'yellow';
+    // ctx.fillText(
+    //   `view=(${vw | 0},${vh | 0}), bars=(${up_y}-${down_y})`,
+    //   (vw / 2) | 0,
+    //   (vh - 56) | 0
+    // );
+    // ctx.fillText(
+    //   `video=(${video.videoWidth},${video.videoHeight})`,
+    //   (vw / 2) | 0,
+    //   (vh - 38) | 0
+    // );
+
+    // ctx.fillText(
+    //   `canvas=(${ctx.canvas.width},${ctx.canvas.height}), SCR=(${SCR_W}, ${SCR_H})`,
+    //   (vw / 2) | 0,
+    //   (vh - 20) | 0
+    // );
+
+    ctx.restore();
   }
 
   function updateStatus(up, down) {
@@ -165,38 +208,24 @@ function app() {
     prev_down = down;
   }
 
-  function onChangeUpDownY(e) {
-    const id = e.target.id;
-    if (id === 'up_y') {
-      up_y = parseInt(e.target.value, 10);
-    }
-    if (id === 'down_y') {
-      down_y = parseInt(e.target.value, 10);
-    }
-  }
-
   function onClickUpDownButton(e) {
     const value = parseInt(e.target.dataset.value, 10);
-    const parent = e.target.parentElement;
-    const input = parent.querySelector('input[type=number]');
-    input.value = parseInt(input.value, 10) + value;
-    onChangeUpDownY({ target: input });
+    const target = e.target.dataset.target;
+    if (target === 'up_y') up_y += value;
+    if (target === 'down_y') down_y += value;
   }
-
-  document.querySelectorAll('#up_y, #down_y').forEach((elem) => {
-    elem.addEventListener('change', onChangeUpDownY);
-  });
 
   document.querySelectorAll('.settings button[data-value]').forEach((elem) => {
     elem.addEventListener('click', onClickUpDownButton);
   });
 
-  document.querySelector('#btn_start').addEventListener('click', onClickStart);
-
   document.addEventListener('dblclick', () => false);
 
-  setCanvasSize(WIDTH, HEIGHT);
-  onClickStart();
-}
+  let timer = undefined;
+  window.addEventListener('resize', () => {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(onResizeWindow, 200);
+  });
 
-app();
+  onResizeWindow();
+})();
