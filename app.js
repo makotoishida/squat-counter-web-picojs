@@ -164,16 +164,16 @@
       drawLine(ctx, 0, down_y, vw, down_y, 'red');
     }
 
-    ctx.font = '44px sans-serif';
+    ctx.font = '12vw sans-serif';
     ctx.fillStyle = squat_done ? 'red' : 'blue';
-    ctx.fillText(count, vw / 2, 50);
+    ctx.fillText(count, vw / 2, vh * 0.1);
 
     const msg = squat_done ? '' : 'Ready';
-    ctx.font = '38px sans-serif';
+    ctx.font = '8vw sans-serif';
     ctx.fillStyle = 'blue';
-    ctx.fillText(msg, vw / 2, 90);
+    ctx.fillText(msg, vw / 2, vh * 0.18);
 
-    // ctx.font = '16px sans-serif';
+    // ctx.font = '4vw sans-serif';
     // ctx.fillStyle = 'yellow';
     // ctx.fillText(
     //   `view=(${vw | 0},${vh | 0}), bars=(${up_y}-${down_y})`,
