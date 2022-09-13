@@ -161,11 +161,16 @@
     ctx.restore();
   }
 
-  function drawArrow(ctx, x0, y0, x1, y1) {
+  function drawArrow(ctx, x0, y0, x1, y1, is_up) {
     ctx.save();
     ctx.beginPath();
-    ctx.strokeStyle = 'rgba(200, 0, 200, 0.4)';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    if (is_up) {
+      ctx.strokeStyle = 'rgba(0, 0, 255, 0.4)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    } else {
+      ctx.strokeStyle = 'rgba(255, 0, 0, 0.4)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    }
     ctx.arrow(x0, y0, x1, y1, [0, 10, -20, 10, -20, 20]);
     ctx.stroke();
     ctx.fill();
@@ -183,10 +188,10 @@
 
     if (squat_done) {
       drawLine(ctx, 0, up_y, viewW, up_y, 'blue', true);
-      drawArrow(ctx, cx, down_y - arrowOffset, cx, up_y + arrowOffset);
+      drawArrow(ctx, cx, down_y - arrowOffset, cx, up_y + arrowOffset, true);
     } else {
       drawLine(ctx, 0, down_y, viewW, down_y, 'red', true);
-      drawArrow(ctx, cx, up_y + arrowOffset, cx, down_y - arrowOffset);
+      drawArrow(ctx, cx, up_y + arrowOffset, cx, down_y - arrowOffset, false);
     }
 
     ctx.font = '12vmin sans-serif';
