@@ -161,7 +161,21 @@
     ctx.restore();
   }
 
+  function drawArrow(ctx, x0, y0, x1, y1) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(200, 0, 200, 0.4)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.arrow(x0, y0, x1, y1, [0, 10, -20, 10, -20, 20]);
+    ctx.stroke();
+    ctx.fill();
+    ctx.restore();
+  }
+
   function drawStatus(ctx, video) {
+    const cx = viewW * 0.5;
+    const arrowOffset = (down_y - up_y) * 0.16;
+
     ctx.save();
 
     drawLine(ctx, 0, up_y, viewW, up_y, 'aqua', true);
@@ -169,18 +183,20 @@
 
     if (squat_done) {
       drawLine(ctx, 0, up_y, viewW, up_y, 'blue', true);
+      drawArrow(ctx, cx, down_y - arrowOffset, cx, up_y + arrowOffset);
     } else {
       drawLine(ctx, 0, down_y, viewW, down_y, 'red', true);
+      drawArrow(ctx, cx, up_y + arrowOffset, cx, down_y - arrowOffset);
     }
 
     ctx.font = '12vmin sans-serif';
     ctx.fillStyle = squat_done ? 'red' : 'blue';
-    ctx.fillText(count, viewW / 2, viewH * 0.14);
+    ctx.fillText(count, cx, viewH * 0.14);
 
     const msg = squat_done ? '' : 'Ready';
     ctx.font = '7vmin sans-serif';
     ctx.fillStyle = 'blue';
-    ctx.fillText(msg, viewW / 2, viewH * 0.23);
+    ctx.fillText(msg, cx, viewH * 0.23);
 
     // //------ For Debugging
     // drawDebug(ctx, video);
