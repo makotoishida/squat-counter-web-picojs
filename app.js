@@ -137,6 +137,7 @@
           ctx.stroke();
 
           updateStatus(y <= up_y, y >= down_y);
+          break; // Exit after detecting one face.
         }
       }
 
